@@ -1,0 +1,51 @@
+{
+  "name": "minitwitter-express",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build/index.js",
+  "dependencies": {
+    "@types/express": "^4.16.1",
+    "@types/jest": "^24.0.6",
+    "@types/mysql": "^2.15.5",
+    "@types/node": "^11.9.4",
+    "@types/passport": "^1.0.0",
+    "@types/passport-jwt": "^3.0.1",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "jsonwebtoken": "^8.5.0",
+    "mysql": "^2.16.0",
+    "nodemon": "^1.18.10",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "typescript": "^3.3.3333"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "tsc && node build/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miluna/minitwitter-express.git"
+  },
+  "author": "Miguel Angel Luna",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/miluna/minitwitter-express/issues"
+  },
+  "homepage": "https://github.com/miluna/minitwitter-express#readme",
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ]
+  }
+}
