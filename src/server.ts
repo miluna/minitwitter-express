@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import passport from 'passport';
 import { auth } from "./config/passport";
 import UserController from "./controllers/UserController";
@@ -8,8 +7,8 @@ import PostController from "./controllers/PostController";
 
 const app = express();
 // Body parser middleware
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 // Passport middleware
 app.use(passport.initialize());
@@ -21,5 +20,5 @@ app.use("/comments", CommentController);
 app.use("/posts", PostController);
 
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`Server running on port ${port}`));
