@@ -1,6 +1,7 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/UserService';
 import { User } from '../models/User';
+import passport = require('passport');
 
 const service: UserService = new UserService();
 const router: Router = express.Router();
@@ -28,7 +29,7 @@ router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
         .catch(err => res.status(404).json(err));
 })
 
-router.put("/:id", (req: Request, res: Response, next: NextFunction) => {
+router.put("/:id", passport.authenticate("jwt", {session: false}) , (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     const updatedUser = req.body;
     service.updateOne(id, updatedUser)
@@ -36,7 +37,7 @@ router.put("/:id", (req: Request, res: Response, next: NextFunction) => {
         .catch(err => res.status(404).json(err));
 })
 
-router.delete("/:id", (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:id", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     service.deleteOne(id)
         .then(user => res.status(200).json(user))

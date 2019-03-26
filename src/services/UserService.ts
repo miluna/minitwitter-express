@@ -79,7 +79,7 @@ export class UserService implements CrudService<User> {
     }
 
     async login(user: User): Promise<Authentication> {
-        const query = "SELECT password FROM users WHERE email=?";
+        const query = "SELECT id, name, email, password, picture FROM users WHERE email=?";
         const values = [user.email];
 
         const rows = await db.query(query, values);
@@ -88,10 +88,10 @@ export class UserService implements CrudService<User> {
         if (isMatch) {
             // User Matched. Create JWT payload
             const payload = {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                picture: user.picture
+                id: rows[0].id,
+                name: rows[0].name,
+                email: rows[0].email,
+                picture: rows[0].picture
             };
 
             // Sign JWT
