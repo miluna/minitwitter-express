@@ -2,25 +2,26 @@ import { db } from '../config/config';
 import { CrudService } from './CrudService';
 import { Post } from '../models/Post';
 
+// TODO: implement service
 export class PostService implements CrudService<Post> {
     
-    findById(id: number): Post {
-        throw new Error("Method not implemented.");
+    findById(id: string): Promise<Post> {
+        return new Promise(resolve => resolve());
     }    
     
-    findAll(): Post[] {
-        throw new Error("Method not implemented.");
+    findAll(): Promise<Post[]> {
+        return new Promise(resolve => resolve());
     }
 
-    createOne(t: Post): Post {
-        throw new Error("Method not implemented.");
+    createOne(t: Post): Promise<Post> {
+        return new Promise(resolve => resolve());
     }
 
-    updateOne(id: number, t: Post): Post {
-        throw new Error("Method not implemented.");
+    updateOne(id: string, t: Post): Promise<Post> {
+        return new Promise(resolve => resolve());
     }
 
-    deleteOne(id: number): boolean {
-        throw new Error("Method not implemented.");
+    deleteOne(id: string): Promise<boolean> {
+        return new Promise(resolve => resolve());
     }
 }

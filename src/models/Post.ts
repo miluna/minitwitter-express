@@ -9,4 +9,5 @@ export interface Post {
     picture?: string;
     likes?: User[];
     comments?: UserComment[];
+    error?: string;
 }

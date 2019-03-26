@@ -1,13 +1,13 @@
 export interface CrudService<T> {
 
-    findById(id: number) : T;
+    findById(id: string) : Promise<T>;
 
-    findAll() : Array<T>;
+    findAll() : Promise<Array<T>>;
 
-    createOne(t: T) : T;
+    createOne(t: T) : Promise<T>;
 
-    updateOne(id: number, t: T) : T;
+    updateOne(id: string, t: T) : Promise<T>;
 
-    deleteOne(id: number) : boolean;
+    deleteOne(id: string) : Promise<boolean>;
 
 }

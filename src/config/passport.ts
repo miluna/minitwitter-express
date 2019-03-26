@@ -12,11 +12,16 @@ export const auth: Function = (passport) => {
 
     passport.use(
         new Strategy(opts, (payload, done) => {
-            const user = service.findById(payload.id)
-            if (user.id) {
-                return done(null, user);
-            }
-            return done(null, false);
+            service.findById(payload.id)
+            .then(user => {
+                if (user.id) {
+                    return done(null, user);
+                }
+                return done(null, false);
+            })
+            .catch(err => {
+                return done(null, false);
+            })
         })
     )
 };

@@ -2,26 +2,27 @@ import { db } from '../config/config';
 import { CrudService } from './CrudService';
 import { UserComment } from '../models/Comment';
 
+// TODO: implement service
 export class CommentService implements CrudService<UserComment> {
 
-    findById(id: number): UserComment {
-        throw new Error("Method not implemented.");
+    findById(id: string): Promise<UserComment> {
+        return new Promise(resolve => resolve());
     }    
     
-    findAll(): UserComment[] {
-        throw new Error("Method not implemented.");
+    findAll(): Promise<UserComment[]> {
+        return new Promise(resolve => resolve());
     }
 
-    createOne(t: UserComment): UserComment {
-        throw new Error("Method not implemented.");
+    createOne(t: UserComment): Promise<UserComment> {
+        return new Promise(resolve => resolve());
     }
 
-    updateOne(id: number, t: UserComment): UserComment {
-        throw new Error("Method not implemented.");
+    updateOne(id: string, t: UserComment): Promise<UserComment> {
+        return new Promise(resolve => resolve());
     }
 
-    deleteOne(id: number): boolean {
-        throw new Error("Method not implemented.");
+    deleteOne(id: string): Promise<boolean> {
+        return new Promise(resolve => resolve());
     }
 
 }

@@ -7,4 +7,5 @@ export interface User {
     location?: string;
     webpage?: string;
     picture?: string;
+    error?: string;
 }
