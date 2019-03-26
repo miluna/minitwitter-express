@@ -51,10 +51,11 @@ export class UserService implements CrudService<User> {
             newUser.password = hash;
             const insertQuery =
                 "INSERT INTO " +
-                "users(name, email, password, description, location, webpage, picture) " +
-                "VALUES(?, ?, ?, ?, ?, ?, ?)";
+                "users(name, username, email, password, description, location, webpage, picture) " +
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
             const insertValues = [
                 newUser.name,
+                newUser.username,
                 newUser.email,
                 newUser.password,
                 newUser.description,
@@ -79,7 +80,7 @@ export class UserService implements CrudService<User> {
     }
 
     async login(user: User): Promise<Authentication> {
-        const query = "SELECT id, name, email, password, picture FROM users WHERE email=?";
+        const query = "SELECT id, name, username, email, password, picture FROM users WHERE email=?";
         const values = [user.email];
 
         const rows = await db.query(query, values);
@@ -90,6 +91,7 @@ export class UserService implements CrudService<User> {
             const payload = {
                 id: rows[0].id,
                 name: rows[0].name,
+                username: rows[0].username,
                 email: rows[0].email,
                 picture: rows[0].picture
             };
