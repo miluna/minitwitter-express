@@ -2,7 +2,7 @@ import { UserComment } from './Comment';
 import { User } from './User';
 
 export interface Post {
-    id?: number;
+    id?: string;
     userId?: number;
     content?: string;
     timestamp?: Date;

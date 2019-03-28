@@ -16,6 +16,7 @@ export class UserService implements CrudService<User> {
             db.query(query, values)
                 .then(rows => {
                     if (rows && rows.length > 0) {
+                        delete rows[0].password;
                         resolve(rows[0])
                     } else reject({ error: "Not found" })
                 });
@@ -28,19 +29,20 @@ export class UserService implements CrudService<User> {
 
             db.query(query)
                 .then(rows => {
+                    rows.map(e => {
+                        delete e.password;
+                        return e;
+                    });
                     resolve(rows);
+                })
+                .catch(err => {
+                    console.log(err.message);
                 })
         })
     }
 
     async createOne(user: User): Promise<User> {
-        const q = "SELECT email FROM users WHERE email=?";
-        const values = [user.email];
-
-        const email = await db.query(q, values);
-        if (email.length > 0) {
-            throw { error: "Email already exists" }
-        } else {
+        try {
             // copy user info
             const newUser: User = { ...user };
             // hash the password
@@ -64,19 +66,66 @@ export class UserService implements CrudService<User> {
                 newUser.picture
             ];
             await db.query(insertQuery, insertValues);
-            const idQuery = "SELECT id FROM users WHERE id=LAST_INSERT_ID()";
-            const result = await db.query(idQuery);
-            const insertedUser = await this.findById(result[0].id);
+            const insertedUser = await this.findById("LAST_INSERT_ID()");
             return insertedUser;
+        } catch (err) {
+            console.log(err.message);
+            return { error: "Email or username already exists" }
         }
     }
 
-    updateOne(id: string, t: User): Promise<User> {
-        return new Promise((resolve, reject) => resolve());
+    updateOne(id: string, updatedInfo: User): Promise<User> {
+        return new Promise((resolve, reject) => {
+            
+            const sel = `
+            UPDATE users 
+            SET name=COALESCE(?,name), 
+            description=COALESCE(?,description), 
+            location=COALESCE(?,location), 
+            webpage=COALESCE(?,webpage), 
+            picture=COALESCE(?,picture) 
+            WHERE id=?`;
+            
+            const values = [
+                updatedInfo.name, 
+                updatedInfo.description, 
+                updatedInfo.location, 
+                updatedInfo.webpage, 
+                updatedInfo.picture, 
+                id
+            ];
+
+            db.query(sel, values)
+            .then(rows => {
+                if (rows && rows.affectedRows > 0) {
+                    const updatedUser = this.findById(id);
+                    resolve(updatedUser) 
+                } else reject({error: "Not found"})
+            })
+            .catch(err => {
+                console.log(err.message);
+                reject({error: "Error updating"})
+            })        
+        });
     }
 
-    deleteOne(id: string): Promise<boolean> {
-        return new Promise((resolve, reject) => resolve());
+    deleteOne(id: string): Promise<User> {
+        return new Promise((resolve, reject) => {
+            const sel = 'DELETE FROM users WHERE id=?'
+            const values = [id];
+
+            db.query(sel, values)
+                .then(rows => {
+
+                    if (rows && rows.affectedRows > 0) {
+                    resolve({id: id}) 
+                    } else reject({error: "Not found"})
+                })
+                .catch(err => {
+                    console.log(err.message);
+                    reject({error: "Not found"})
+                })
+        });
     }
 
     async login(user: User): Promise<Authentication> {

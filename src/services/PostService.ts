@@ -21,7 +21,7 @@ export class PostService implements CrudService<Post> {
         return new Promise(resolve => resolve());
     }
 
-    deleteOne(id: string): Promise<boolean> {
+    deleteOne(id: string): Promise<Post> {
         return new Promise(resolve => resolve());
     }
 }

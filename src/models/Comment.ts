@@ -1,5 +1,5 @@
 export interface UserComment {
-    id?: number;
+    id?: string;
     userId?: number;
     content?: string;
     error?: string;

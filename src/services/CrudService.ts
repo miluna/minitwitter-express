@@ -8,6 +8,6 @@ export interface CrudService<T> {
 
     updateOne(id: string, t: T) : Promise<T>;
 
-    deleteOne(id: string) : Promise<boolean>;
+    deleteOne(id: string) : Promise<T>;
 
 }

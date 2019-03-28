@@ -21,7 +21,7 @@ export class CommentService implements CrudService<UserComment> {
         return new Promise(resolve => resolve());
     }
 
-    deleteOne(id: string): Promise<boolean> {
+    deleteOne(id: string): Promise<UserComment> {
         return new Promise(resolve => resolve());
     }
 
