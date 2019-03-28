@@ -19,7 +19,10 @@ export class UserService implements CrudService<User> {
                         delete rows[0].password;
                         resolve(rows[0])
                     } else reject({ error: "Not found" })
-                });
+                })
+                .catch(err => {
+                    console.log(err.message);
+                })
         })
     }
 
@@ -65,8 +68,8 @@ export class UserService implements CrudService<User> {
                 newUser.webpage,
                 newUser.picture
             ];
-            await db.query(insertQuery, insertValues);
-            const insertedUser = await this.findById("LAST_INSERT_ID()");
+            const insert = await db.query(insertQuery, insertValues);
+            const insertedUser = await this.findById(insert.insertId);
             return insertedUser;
         } catch (err) {
             console.log(err.message);
