@@ -1,7 +1,7 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/UserService';
 import { User } from '../models/User';
-import passport = require('passport');
+import passport from 'passport';
 
 const service: UserService = new UserService();
 const router: Router = express.Router();
