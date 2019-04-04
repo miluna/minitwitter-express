@@ -22,6 +22,7 @@ export class UserService implements CrudService<User> {
                 })
                 .catch(err => {
                     console.log(err.message);
+                    reject({ error: err });
                 })
         })
     }
@@ -40,6 +41,7 @@ export class UserService implements CrudService<User> {
                 })
                 .catch(err => {
                     console.log(err.message);
+                    reject({ error: err });
                 })
         })
     }
@@ -73,7 +75,7 @@ export class UserService implements CrudService<User> {
             return insertedUser;
         } catch (err) {
             console.log(err.message);
-            return { error: "Email or username already exists" }
+            throw { error: "Email or username already exists" }
         }
     }
 
@@ -107,7 +109,7 @@ export class UserService implements CrudService<User> {
             })
             .catch(err => {
                 console.log(err.message);
-                reject({error: "Error updating"})
+                reject({ error: err });
             })        
         });
     }
@@ -126,7 +128,7 @@ export class UserService implements CrudService<User> {
                 })
                 .catch(err => {
                     console.log(err.message);
-                    reject({error: "Not found"})
+                    reject({ error: err });
                 })
         });
     }
