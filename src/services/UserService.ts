@@ -5,6 +5,7 @@ import { Authentication } from '../models/Authentication';
 import { secretOrKey } from "../config/config";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
+import generateRandomPassword from '../utils/generateRandomPassword';
 
 export class UserService implements CrudService<User> {
 
@@ -154,5 +155,48 @@ export class UserService implements CrudService<User> {
             const token = await jwt.sign(payload, secretOrKey, { expiresIn: 3600 });
             return { Authorization: "Bearer " + token }
         } else throw ({ error: "Password mismatch" })
+    }
+
+    async resetPassword(id: string): Promise<Authentication> {
+        const newPassword = generateRandomPassword();
+        // hash the password
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(newPassword, salt);
+
+        const result = await this.updateOne(id, { password: hash })
+        if (result.error) {
+            throw { error: result.error }
+        } else {
+            
+            return { message: "Password reset succesfully" };
+        }
+    }
+
+    async changePassword(user: User): Promise<Authentication> {
+        if (!user.email && !user.password && !user.password2){
+            throw { error: "Not all fields provided" }
+        }
+        
+        const query = "SELECT id, email, password FROM users WHERE email=?";
+        const values = [user.email];
+
+        const rows = await db.query(query, values);
+        const { id, password } = rows[0];
+        const isMatch = await bcrypt.compare(user.password, password);
+        if (isMatch) {
+
+            // hash the password
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(user.password2, salt);
+
+            const result = await this.updateOne(id, { password: hash })
+            if (result.error) {
+                throw { error: result.error }
+            } else {
+                return { message: "Password changed succesfully" };
+            }
+        } else {
+            throw { error: "Password mismatch" }
+        }
     }
 }

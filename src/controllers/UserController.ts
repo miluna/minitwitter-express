@@ -1,6 +1,7 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/UserService';
 import { User } from '../models/User';
+import assureSameUser from '../utils/assureSameUser';
 import passport from 'passport';
 
 const service: UserService = new UserService();
@@ -29,7 +30,7 @@ router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
         .catch(err => res.status(404).json(err));
 })
 
-router.put("/:id", passport.authenticate("jwt", {session: false}) , (req: Request, res: Response, next: NextFunction) => {
+router.put("/:id", passport.authenticate("jwt", {session: false}), assureSameUser, (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     const updatedUser = req.body;
     service.updateOne(id, updatedUser)
@@ -37,7 +38,7 @@ router.put("/:id", passport.authenticate("jwt", {session: false}) , (req: Reques
         .catch(err => res.status(404).json(err));
 })
 
-router.delete("/:id", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:id", passport.authenticate("jwt", {session: false}), assureSameUser, (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     service.deleteOne(id)
         .then(user => res.status(200).json(user))
@@ -47,6 +48,20 @@ router.delete("/:id", passport.authenticate("jwt", {session: false}), (req: Requ
 router.post("/login", (req: Request, res: Response, next: NextFunction) => {
     const user: User = req.body;
     service.login(user)
+        .then(auth => res.status(200).json(auth))
+        .catch(err => res.status(400).json(err));
+})
+
+router.get("/:id/reset-password", (req: Request, res: Response, next: NextFunction) => {
+    const id: string = req.params.id;
+    service.resetPassword(id)
+        .then(auth => res.status(200).json(auth))
+        .catch(err => res.status(400).json(err));
+})
+
+router.post("/:id/change-password", passport.authenticate("jwt", {session: false}), assureSameUser, (req: Request, res: Response, next: NextFunction) => {
+    const user: User = req.body;
+    service.changePassword(user)
         .then(auth => res.status(200).json(auth))
         .catch(err => res.status(400).json(err));
 })

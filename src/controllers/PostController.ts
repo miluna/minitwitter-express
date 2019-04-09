@@ -42,4 +42,8 @@ router.delete("/:id", passport.authenticate("jwt", {session: false}), (req: Requ
         .catch(err => res.status(404).json(err));
 })
 
+router.get("/:id/like", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
+
+})
+
 export default router;

@@ -2,7 +2,7 @@ import { db } from '../config/config';
 import { CrudService } from './CrudService';
 import { UserComment } from '../models/Comment';
 
-// TODO: implement service
+
 export class CommentService implements CrudService<UserComment> {
 
     findById(id: string): Promise<UserComment> {
@@ -25,4 +25,7 @@ export class CommentService implements CrudService<UserComment> {
         return new Promise(resolve => resolve());
     }
 
+    likeOrDislikeOne(id: string): Promise<boolean> {
+        return new Promise(resolve => resolve());
+    }
 }
