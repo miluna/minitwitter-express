@@ -15,6 +15,11 @@ app.use(passport.initialize());
 auth(passport);
 
 // Use Routes
+app.get("/health", (req, res) => res.sendStatus(200));
+app.get("/currentuser", passport.authenticate("jwt", {session: false}), (req, res) => {
+    const { user } = req;
+    res.status(200).json(user);
+});
 app.use("/users", UserController);
 app.use("/comments", CommentController);
 app.use("/posts", PostController);

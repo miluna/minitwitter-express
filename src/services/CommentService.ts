@@ -6,26 +6,160 @@ import { UserComment } from '../models/Comment';
 export class CommentService implements CrudService<UserComment> {
 
     findById(id: string): Promise<UserComment> {
-        return new Promise(resolve => resolve());
-    }    
-    
+        return new Promise((resolve, reject) => {
+            const query = "SELECT * FROM comments WHERE id=?";
+            const values = [id];
+
+            db.query(query, values)
+                .then(rows => {
+                    resolve(rows);
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject({ error: err });
+                })
+        });
+    }
+
     findAll(): Promise<UserComment[]> {
-        return new Promise(resolve => resolve());
+        return new Promise((resolve, reject) => {
+            const query = "SELECT * FROM comments";
+
+            db.query(query)
+                .then(rows => {
+                    resolve(rows);
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject({ error: err });
+                })
+        });
     }
 
-    createOne(t: UserComment): Promise<UserComment> {
-        return new Promise(resolve => resolve());
+    async createOne(newComment: UserComment): Promise<UserComment> {
+        try {
+            const query = `
+            INSERT INTO 
+            comments(content, post_id, user_id) 
+            VALUES(?, ?, ?)
+            `;
+            const values = [
+                newComment.content,
+                newComment.postId,
+                newComment.userId
+            ];
+
+            const insert = await db.query(query, values);
+            const insertedComment = await this.findById(insert.insertId);
+            return insertedComment;
+        } catch (err) {
+            console.log(err.message);
+            throw { error: err.message };
+        }
     }
 
-    updateOne(id: string, t: UserComment): Promise<UserComment> {
-        return new Promise(resolve => resolve());
+    updateOne(id: string, updatedInfo: UserComment): Promise<UserComment> {
+        return new Promise((resolve, reject) => {
+            const sel = `
+            UPDATE comments 
+            SET content=COALESCE(?,content) 
+            WHERE id=?`;
+
+            const values = [
+                updatedInfo.content, 
+                id
+            ];
+
+            db.query(sel, values)
+                .then(rows => {
+                    if (rows && rows.affectedRows > 0) {
+                        this.findById(id)
+                            .then(updatedComment => resolve(updatedComment))
+                            .catch(err => reject({ error: err }));
+                    } else reject({error: "Not found"})
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject({ error: err });
+                })
+        });
     }
 
     deleteOne(id: string): Promise<UserComment> {
-        return new Promise(resolve => resolve());
+        return new Promise((resolve, reject) => {
+            const query = "DELETE FROM comments WHERE id=?";
+            const values = [id];
+
+            db.query(query, values)
+                .then(rows => {
+                    if (rows && rows.affectedRows > 0) {
+                        resolve({id: id}) 
+                    } else reject({error: "Not found"})
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject({ error: err });
+                })
+        });
     }
 
-    likeOrDislikeOne(id: string): Promise<boolean> {
-        return new Promise(resolve => resolve());
+    likeOne(commentId: string, userId: string): Promise<UserComment> {
+        return new Promise((resolve, reject) => {
+            // TODO
+            const query = `
+            INSERT INTO 
+            comments_have_likes(comment_id, user_id) 
+            VALUES(?, ?)
+            `;
+            const values = [commentId, userId];
+
+            db.query(query, values)
+                .then(rows => {
+                    if (rows && rows.affectedRows > 0) {
+                        resolve({ id: rows.insertId });
+                    } else reject({error: "Not found"})
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject({ error: err });
+                })
+        });
+    }
+
+    dislikeOne(commentId: string, userId: string): Promise<UserComment> {
+        return new Promise((resolve, reject) => {
+            const query = `
+            DELETE FROM comments_have_likes 
+            WHERE comment_id=? AND user_id=?
+            `;
+            const values = [commentId, userId];
+
+            db.query(query, values)
+                .then(rows => {
+                    if (rows && rows.affectedRows > 0) {
+                        resolve({id: commentId}) 
+                    } else reject({error: "Not found"})
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject({ error: err });
+                })
+        });
+    }
+
+    findUserComments(userId: string): Promise<UserComment[]> {
+        return new Promise((resolve, reject) => {
+            const query = "SELECT * FROM comments WHERE user_id=?";
+            const values = [userId];
+
+            db.query(query, values)
+                .then(rows => {
+                    resolve(rows);
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject({ error: err });
+                })
+        });
     }
 }
