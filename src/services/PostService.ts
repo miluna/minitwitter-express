@@ -1,35 +1,39 @@
 import { db } from '../config/config';
 import { CrudService } from './CrudService';
 import { Post } from '../models/Post';
+import { UserComment } from 'src/models/Comment';
+import { User } from 'src/models/User';
 
 
 export class PostService implements CrudService<Post> {
     
-    findById(id: string): Promise<Post> {
-        return new Promise((resolve, reject) => {
+    async findById(id: string): Promise<Post> {
+        try {
             const query = `
             SELECT 
             id, 
-            user_id as userId, 
+            owner_id as userId, 
             content, 
-            timestamp, 
-            picture, 
-            likes=(SELECT user_id as userId FROM posts_have_likes WHERE post_id=id), 
-            comments=(SELECT * FROM comments WHERE post_id=id) 
+            post_timestamp as timestamp, 
+            picture 
             FROM posts 
             WHERE id=?
             `;
             const values = [id];
 
-            db.query(query, values)
-                .then(rows => {
-                    resolve(rows);
-                })
-                .catch(err => {
-                    console.log(err);
-                    reject({ error: err });
-                })
-        });
+            const rows = await db.query(query, values)
+            if (rows && rows.length > 0) {
+                const post: Post = rows[0];
+                const comments: UserComment[] = await this.findComments(id);
+                const likes: User[] = await this.findLikes(id);
+                post.comments = comments;
+                post.likes = likes;
+                return post;
+            } else throw ({error: "Not found"})
+        } catch(err) {
+                console.log(err);
+                throw ({ error: err });
+        }
     }    
     
     findAll(): Promise<Post[]> {
@@ -51,7 +55,7 @@ export class PostService implements CrudService<Post> {
         try {
             const query = `
             INSERT INTO 
-            posts(content, picture, user_id) 
+            posts(content, picture, owner_id) 
             VALUES(?, ?, ?)
             `;
             const values = [
@@ -118,7 +122,6 @@ export class PostService implements CrudService<Post> {
 
     likeOne(postId: string, userId: string): Promise<Post> {
         return new Promise((resolve, reject) => {
-            // TODO
             const query = `
             INSERT INTO 
             posts_have_likes(post_id, user_id) 
@@ -211,10 +214,8 @@ export class PostService implements CrudService<Post> {
             id, 
             user_id as userId, 
             content, 
-            timestamp, 
-            picture, 
-            likes=(SELECT user_id as userId FROM posts_have_likes WHERE post_id=id), 
-            comments=(SELECT * FROM comments WHERE post_id=id) 
+            post_timestamp AS timestamp, 
+            picture
             FROM posts 
             WHERE user_id=?
             `;
@@ -229,5 +230,49 @@ export class PostService implements CrudService<Post> {
                     reject({ error: err });
                 })
         });
+    }
+
+    findComments(postId: string): Promise<UserComment[]> {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT id, content, user_id as userId 
+                FROM comments 
+                WHERE post_id=?
+            `;
+            const values = [postId];
+
+            db.query(sql, values)
+                .then(rows => {
+                    if (rows && rows.length > 0) {
+                        resolve(rows);
+                    } else resolve([])
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject({ error: err });
+                })
+        })
+    }
+
+    findLikes(postId: string): Promise<User[]> {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT id, user_id as userId 
+                FROM posts_have_likes 
+                WHERE post_id=?
+            `;
+            const values = [postId];
+
+            db.query(sql, values)
+                .then(rows => {
+                    if (rows && rows.length > 0) {
+                        resolve(rows);
+                    } else resolve([])
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject({ error: err });
+                })
+        })
     }
 }
