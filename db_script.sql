@@ -43,20 +43,20 @@
     `user_id` int
   );
 
-  ALTER TABLE `comments` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ALTER TABLE `comments` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-  ALTER TABLE `comments` ADD FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`);
+  ALTER TABLE `comments` ADD FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-  ALTER TABLE `users_have_posts` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ALTER TABLE `users_have_posts` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-  ALTER TABLE `users_have_posts` ADD FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`);
+  ALTER TABLE `users_have_posts` ADD FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-  ALTER TABLE `posts` ADD FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`);
+  ALTER TABLE `posts` ADD FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-  ALTER TABLE `posts_have_likes` ADD FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`);
+  ALTER TABLE `posts_have_likes` ADD FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-  ALTER TABLE `posts_have_likes` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ALTER TABLE `posts_have_likes` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-  ALTER TABLE `comments_have_likes` ADD FOREIGN KEY (`comment_id`) REFERENCES `comments` (`id`);
+  ALTER TABLE `comments_have_likes` ADD FOREIGN KEY (`comment_id`) REFERENCES `comments` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-  ALTER TABLE `comments_have_likes` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ALTER TABLE `comments_have_likes` ADD FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;

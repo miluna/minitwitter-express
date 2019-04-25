@@ -222,7 +222,7 @@ export class UserService implements CrudService<User> {
         const rows = await db.query(sel, values);
 
         if (rows && rows.affectedRows > 0) {
-            sendEmail(rows[0].email, resetPasswordBody(password));
+            sendEmail(rows[0].email, resetPasswordBody(password), "Your password has been reset in Minitwitter!");
         } else {
             console.log("User email not found!!")
         }
