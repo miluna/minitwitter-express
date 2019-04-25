@@ -1,4 +1,5 @@
-import { ConnectionConfig, Pool } from 'mysql';
+import { ConnectionConfig } from 'mysql';
+import { Transporter, createTransport } from "nodemailer";
 import mysql from 'promise-mysql';
 
 const dbConfig: ConnectionConfig = {
@@ -10,3 +11,10 @@ const dbConfig: ConnectionConfig = {
 };
 export const db = mysql.createPool(dbConfig);
 export const secretOrKey: string = "secret";
+export const emailConfig: Transporter = createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.SERVICE_EMAIL || 'youremail@gmail.com',
+        pass: process.env.SERVICE_EMAIL_PASSWORD || 'yourpassword',
+    }
+});

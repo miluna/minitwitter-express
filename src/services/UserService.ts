@@ -6,6 +6,8 @@ import { secretOrKey } from "../config/config";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
 import generateRandomPassword from '../utils/generateRandomPassword';
+import sendEmail from '../utils/sendEmail';
+import resetPasswordBody from '../utils/resetPasswordBody';
 
 export class UserService implements CrudService<User> {
 
@@ -122,7 +124,6 @@ export class UserService implements CrudService<User> {
 
             db.query(sel, values)
                 .then(rows => {
-
                     if (rows && rows.affectedRows > 0) {
                     resolve({id: id}) 
                     } else reject({error: "Not found"})
@@ -158,17 +159,28 @@ export class UserService implements CrudService<User> {
     }
 
     async resetPassword(id: string): Promise<Authentication> {
-        const newPassword = generateRandomPassword();
-        // hash the password
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(newPassword, salt);
+        try {
+            const newPassword = generateRandomPassword();
+            // hash the password
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(newPassword, salt);
 
-        const result = await this.updateOne(id, { password: hash })
-        if (result.error) {
-            throw { error: result.error }
-        } else {
+            const sel = `
+                UPDATE users 
+                SET password=?  
+                WHERE id=?`;
+            const values = [hash, id];
+            const rows = await db.query(sel, values)
             
-            return { message: "Password reset succesfully" };
+            if (rows && rows.affectedRows > 0) {
+                await this.sendEmailToUserPasswordReset(id, newPassword);
+                return { message: "Password reset succesfully" };
+            } else {
+                throw { error: "User not found" }
+            }
+        } catch (e) {
+            console.log(e.message);
+            throw { error: e };
         }
     }
 
@@ -188,15 +200,31 @@ export class UserService implements CrudService<User> {
             // hash the password
             const salt = await bcrypt.genSalt(10);
             const hash = await bcrypt.hash(user.password2, salt);
-
-            const result = await this.updateOne(id, { password: hash })
-            if (result.error) {
-                throw { error: result.error }
-            } else {
+            const sel = `
+                UPDATE users 
+                SET password=?  
+                WHERE id=?`;
+            const values = [hash, id];
+            const rows = await db.query(sel, values)
+            
+            if (rows && rows.affectedRows > 0) {
                 return { message: "Password changed succesfully" };
-            }
+            } else throw { error: "User not found" };
         } else {
             throw { error: "Password mismatch" }
+        }
+    }
+
+    async sendEmailToUserPasswordReset(userId: string, password: string): Promise<void> {
+
+        const sel = "SELECT email FROM users WHERE id=?"
+        const values = [userId];
+        const rows = await db.query(sel, values);
+
+        if (rows && rows.affectedRows > 0) {
+            sendEmail(rows[0].email, resetPasswordBody(password));
+        } else {
+            console.log("User email not found!!")
         }
     }
 }
