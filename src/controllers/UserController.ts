@@ -1,14 +1,15 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/UserService';
 import { User } from '../models/User';
-import assureSameUser from '../utils/assureSameUser';
+import { assureSameUser } from '../utils/assureSameUser';
 import passport from 'passport';
 
 const service: UserService = new UserService();
 const router: Router = express.Router();
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
-    service.findAll()
+    const { offset } = req.query;
+    service.findAll(offset)
         .then(users => res.status(200).json(users))
         .catch(err => res.status(404).json(err));
 });
@@ -29,7 +30,7 @@ router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
 
 router.put("/:id", passport.authenticate("jwt", {session: false}), assureSameUser, (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
-    const updatedUser = req.body;
+    const updatedUser: User = req.body;
     service.updateOne(id, updatedUser)
         .then(user => res.status(200).json(user))
         .catch(err => res.status(404).json(err));

@@ -1,11 +1,11 @@
 import { db } from '../config/config';
-import { CrudService } from './CrudService';
 import { Post } from '../models/Post';
 import { UserComment } from 'src/models/Comment';
 import { User } from 'src/models/User';
+import { MultipleCrudService } from "./MultipleCrudService";
 
 
-export class PostService implements CrudService<Post> {
+export class PostService implements MultipleCrudService<Post> {
     
     async findById(id: string): Promise<Post> {
         try {
@@ -36,11 +36,11 @@ export class PostService implements CrudService<Post> {
         }
     }    
     
-    findAll(): Promise<Post[]> {
+    findAll(offset = 0): Promise<Post[]> {
         return new Promise((resolve, reject) => {
-            const query = "SELECT * FROM posts";
-
-            db.query(query)
+            const query = "SELECT * FROM posts LIMIT ?, 25";
+            const values = [offset];
+            db.query(query, values)
                 .then(rows => {
                     resolve(rows);
                 })
@@ -65,6 +65,9 @@ export class PostService implements CrudService<Post> {
             ];
 
             const insert = await db.query(query, values);
+            const q2 = 'INSERT INTO users_have_posts(post_id, user_id) VALUES(?, ?)';
+            const val2 = [insert.insertId, newPost.userId];
+            const insertToTweets = db.query(q2, val2);
             const insertedComment = await this.findById(insert.insertId);
             return insertedComment;
         } catch (err) {
@@ -207,29 +210,27 @@ export class PostService implements CrudService<Post> {
         });
     }
 
-    findUserPosts(userId: string): Promise<Post[]> {
-        return new Promise((resolve, reject) => {
+    async findUserObjects(userId: string, offset = 0): Promise<Post[]> {
+        try {
             const query = `
             SELECT 
-            id, 
-            user_id as userId, 
-            content, 
-            post_timestamp AS timestamp, 
-            picture
-            FROM posts 
-            WHERE user_id=?
+            post_id as postId, 
+            FROM users_have_posts 
+            WHERE user_id=? 
+            LIMIT ?, 25;
             `;
-            const values = [userId];
+            const values = [userId, offset];
 
-            db.query(query, values)
-                .then(rows => {
-                    resolve(rows);
-                })
-                .catch(err => {
-                    console.log(err);
-                    reject({ error: err });
-                })
-        });
+            const rows = await db.query(query, values);
+            let result = [];
+            if (rows && rows.affectedRows > 0) {
+                result = rows.map(async e => await this.findById(e.postId))
+            }
+            return result;
+        } catch(err) {
+            console.log(err.message);
+            throw { error: err.message };
+        }
     }
 
     findComments(postId: string): Promise<UserComment[]> {

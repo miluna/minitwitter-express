@@ -1,9 +1,9 @@
 import { db } from '../config/config';
-import { CrudService } from './CrudService';
 import { UserComment } from '../models/Comment';
+import {MultipleCrudService} from "./MultipleCrudService";
 
 
-export class CommentService implements CrudService<UserComment> {
+export class CommentService implements MultipleCrudService<UserComment> {
 
     findById(id: string): Promise<UserComment> {
         return new Promise((resolve, reject) => {
@@ -21,11 +21,11 @@ export class CommentService implements CrudService<UserComment> {
         });
     }
 
-    findAll(): Promise<UserComment[]> {
+    findAll(offset = 0): Promise<UserComment[]> {
         return new Promise((resolve, reject) => {
-            const query = "SELECT * FROM comments";
-
-            db.query(query)
+            const query = "SELECT * FROM comments LIMIT ?,25";
+            const values = [offset];
+            db.query(query, values)
                 .then(rows => {
                     resolve(rows);
                 })
@@ -147,10 +147,10 @@ export class CommentService implements CrudService<UserComment> {
         });
     }
 
-    findUserComments(userId: string): Promise<UserComment[]> {
+    findUserObjects(userId: string, offset = 0): Promise<UserComment[]> {
         return new Promise((resolve, reject) => {
-            const query = "SELECT * FROM comments WHERE user_id=?";
-            const values = [userId];
+            const query = "SELECT * FROM comments WHERE user_id=? LIMIT ?,25";
+            const values = [userId, offset];
 
             db.query(query, values)
                 .then(rows => {

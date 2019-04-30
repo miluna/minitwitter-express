@@ -30,11 +30,11 @@ export class UserService implements CrudService<User> {
         })
     }
 
-    findAll(): Promise<User[]> {
+    findAll(offset = 0): Promise<User[]> {
         return new Promise((resolve, reject) => {
-            const query = "SELECT * FROM users";
-
-            db.query(query)
+            const query = "SELECT * FROM users LIMIT ?,25";
+            const values = [offset];
+            db.query(query, values)
                 .then(rows => {
                     rows.map(e => {
                         delete e.password;
@@ -217,7 +217,7 @@ export class UserService implements CrudService<User> {
 
     async sendEmailToUserPasswordReset(userId: string, password: string): Promise<void> {
 
-        const sel = "SELECT email FROM users WHERE id=?"
+        const sel = "SELECT email FROM users WHERE id=?";
         const values = [userId];
         const rows = await db.query(sel, values);
 

@@ -2,12 +2,14 @@ import express, { Router, Request, Response, NextFunction } from 'express';
 import { PostService } from '../services/PostService';
 import passport from 'passport';
 import { Post } from 'src/models/Post';
+import {assureSamePostOwner} from "../utils/assureSameUser";
 
 const service: PostService = new PostService();
 const router: Router = express.Router();
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
-    service.findAll()
+    const { offset } = req.query;
+    service.findAll(offset)
         .then(posts => res.status(200).json(posts))
         .catch(err => res.status(404).json(err));
 });
@@ -28,15 +30,15 @@ router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
         .catch(err => res.status(404).json(err));
 });
 
-router.put("/:id", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
+router.put("/:id", passport.authenticate("jwt", {session: false}), assureSamePostOwner, (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
-    const updatedpost = req.body;
+    const updatedpost: Post = req.body;
     service.updateOne(id, updatedpost)
         .then(post => res.status(200).json(post))
         .catch(err => res.status(404).json(err));
 });
 
-router.delete("/:id", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:id", passport.authenticate("jwt", {session: false}), assureSamePostOwner, (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     service.deleteOne(id)
         .then(post => res.status(200).json(post))
@@ -77,7 +79,8 @@ router.delete("/:id/retweet", passport.authenticate("jwt", {session: false}), (r
 
 router.get("/currentuser", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
     const { user } = req;
-    service.findUserPosts(user.id)
+    const { offset } = req.query;
+    service.findUserObjects(user.id, offset)
         .then(post => res.status(200).json(post))
         .catch(err => res.status(404).json(err));
 });
