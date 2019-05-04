@@ -1,6 +1,7 @@
 import { db } from '../config/config';
 import { UserComment } from '../models/Comment';
 import {MultipleCrudService} from "./MultipleCrudService";
+import {logError} from "../config/logging";
 
 
 export class CommentService implements MultipleCrudService<UserComment> {
@@ -15,7 +16,7 @@ export class CommentService implements MultipleCrudService<UserComment> {
                     resolve(rows);
                 })
                 .catch(err => {
-                    console.log(err);
+                    logError("CommentService/findById", err);
                     reject({ error: err });
                 })
         });
@@ -30,7 +31,7 @@ export class CommentService implements MultipleCrudService<UserComment> {
                     resolve(rows);
                 })
                 .catch(err => {
-                    console.log(err);
+                    logError("CommentService/findAll", err);
                     reject({ error: err });
                 })
         });
@@ -53,7 +54,7 @@ export class CommentService implements MultipleCrudService<UserComment> {
             const insertedComment = await this.findById(insert.insertId);
             return insertedComment;
         } catch (err) {
-            console.log(err.message);
+            logError("CommentService/createOne", err.message);
             throw { error: err.message };
         }
     }
@@ -79,8 +80,8 @@ export class CommentService implements MultipleCrudService<UserComment> {
                     } else reject({error: "Not found"})
                 })
                 .catch(err => {
-                    console.log(err);
-                    reject({ error: err });
+                    logError("CommentService/updateOne", err.message);
+                    reject({ error: err.message });
                 })
         });
     }
@@ -97,15 +98,14 @@ export class CommentService implements MultipleCrudService<UserComment> {
                     } else reject({error: "Not found"})
                 })
                 .catch(err => {
-                    console.log(err);
-                    reject({ error: err });
+                    logError("CommentService/deleteOne", err.message);
+                    reject({ error: err.message });
                 })
         });
     }
 
     likeOne(commentId: string, userId: string): Promise<UserComment> {
         return new Promise((resolve, reject) => {
-            // TODO
             const query = `
             INSERT INTO 
             comments_have_likes(comment_id, user_id) 
@@ -120,8 +120,8 @@ export class CommentService implements MultipleCrudService<UserComment> {
                     } else reject({error: "Not found"})
                 })
                 .catch(err => {
-                    console.log(err);
-                    reject({ error: err });
+                    logError("CommentService/likeOne", err.message);
+                    reject({ error: err.message });
                 })
         });
     }
@@ -141,8 +141,8 @@ export class CommentService implements MultipleCrudService<UserComment> {
                     } else reject({error: "Not found"})
                 })
                 .catch(err => {
-                    console.log(err);
-                    reject({ error: err });
+                    logError("CommentService/dislikeOne", err.message);
+                    reject({ error: err.message });
                 })
         });
     }
@@ -157,8 +157,8 @@ export class CommentService implements MultipleCrudService<UserComment> {
                     resolve(rows);
                 })
                 .catch(err => {
-                    console.log(err);
-                    reject({ error: err });
+                    logError("CommentService/findUserObjects", err.message);
+                    reject({ error: err.message });
                 })
         });
     }

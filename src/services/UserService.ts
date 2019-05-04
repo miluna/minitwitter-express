@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import generateRandomPassword from '../utils/generateRandomPassword';
 import sendEmail from '../utils/sendEmail';
 import resetPasswordBody from '../utils/resetPasswordBody';
+import {validateEmail, validatePasswordComplexity} from "../utils/validation";
 
 export class UserService implements CrudService<User> {
 
@@ -53,6 +54,9 @@ export class UserService implements CrudService<User> {
         try {
             // copy user info
             const newUser: User = { ...user };
+            // validate data
+            if (!validateEmail(newUser.email)) throw new Error("Email format incorrect");
+            if (!validatePasswordComplexity(newUser.password)) throw new Error("Password format incorrect");
             // hash the password
             const salt = await bcrypt.genSalt(10);
             const hash = await bcrypt.hash(newUser.password, salt);
@@ -78,7 +82,7 @@ export class UserService implements CrudService<User> {
             return insertedUser;
         } catch (err) {
             console.log(err.message);
-            throw { error: "Email or username already exists" }
+            throw { error: err.message }
         }
     }
 
@@ -170,7 +174,7 @@ export class UserService implements CrudService<User> {
                 SET password=?  
                 WHERE id=?`;
             const values = [hash, id];
-            const rows = await db.query(sel, values)
+            const rows = await db.query(sel, values);
             
             if (rows && rows.affectedRows > 0) {
                 await this.sendEmailToUserPasswordReset(id, newPassword);
@@ -187,6 +191,10 @@ export class UserService implements CrudService<User> {
     async changePassword(user: User): Promise<Authentication> {
         if (!user.email && !user.password && !user.password2){
             throw { error: "Not all fields provided" }
+        }
+
+        if (!validatePasswordComplexity(user.password2)){
+            throw { error: "Password format incorrect" }
         }
         
         const query = "SELECT id, email, password FROM users WHERE email=?";

@@ -3,8 +3,9 @@ import { CommentService } from '../services/CommentService';
 import passport from 'passport';
 import {UserComment} from "../models/Comment";
 import {assureSameCommentOwner} from "../utils/assureSameUser";
+import {logError} from "../config/logging";
 
-const service: CommentService = new CommentService();
+export const service: CommentService = new CommentService();
 const router: Router = express.Router();
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
@@ -14,6 +15,7 @@ router.get("/", (req: Request, res: Response, next: NextFunction) => {
             .then(comments => res.status(200).json(comments))
             .catch(err => res.status(404).json(err));
     }
+    logError("CommentController/getAll", "postId parameter is required");
     res.status(400).json({ error: "postId parameter is required" });
 });
 
@@ -29,14 +31,14 @@ router.post("/", passport.authenticate("jwt", {session: false}), (req: Request, 
     res.status(400);
 });
 
-router.get("/:id", (req: Request, res: Response, next: NextFunction) => {
+router.get("/:id([0-9]*)", (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     service.findById(id)
         .then(comment => res.status(200).json(comment))
         .catch(err => res.status(404).json(err));
 });
 
-router.put("/:id", passport.authenticate("jwt", {session: false}), assureSameCommentOwner, (req: Request, res: Response, next: NextFunction) => {
+router.put("/:id([0-9]*)", passport.authenticate("jwt", {session: false}), assureSameCommentOwner, (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     const updatedcomment: UserComment = req.body;
     service.updateOne(id, updatedcomment)
@@ -44,14 +46,14 @@ router.put("/:id", passport.authenticate("jwt", {session: false}), assureSameCom
         .catch(err => res.status(404).json(err));
 });
 
-router.delete("/:id", passport.authenticate("jwt", {session: false}), assureSameCommentOwner, (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:id([0-9]*)", passport.authenticate("jwt", {session: false}), assureSameCommentOwner, (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     service.deleteOne(id)
         .then(comment => res.status(200).json(comment))
         .catch(err => res.status(404).json(err));
 });
 
-router.get("/:id/like", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
+router.get("/:id([0-9]*)/like", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     const { user } = req;
     service.likeOne(id, user.id)
@@ -59,7 +61,7 @@ router.get("/:id/like", passport.authenticate("jwt", {session: false}), (req: Re
         .catch(err => res.status(404).json(err));
 });
 
-router.delete("/:id/like", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
+router.delete("/:id([0-9]*)/like", passport.authenticate("jwt", {session: false}), (req: Request, res: Response, next: NextFunction) => {
     const id: string = req.params.id;
     const { user } = req;
     service.dislikeOne(id, user.id)
