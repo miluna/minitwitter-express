@@ -1,5 +1,6 @@
 import express from 'express';
 import passport from 'passport';
+import helmet from 'helmet';
 import { auth } from "./config/passport";
 import UserController from "./controllers/UserController";
 import CommentController from "./controllers/CommentController";
@@ -10,6 +11,11 @@ const app = express();
 // Body parser middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(helmet({
+    noCache: true,
+    hidePoweredBy: true,
+    noSniff: true,
+}));
 
 // Passport middleware
 app.use(passport.initialize());
