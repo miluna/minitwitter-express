@@ -5,6 +5,10 @@ import { Authentication } from '../models/Authentication';
 import { secretOrKey } from "../config/config";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
+import generateRandomPassword from '../utils/generateRandomPassword';
+import sendEmail from '../utils/sendEmail';
+import resetPasswordBody from '../utils/resetPasswordBody';
+import {validateEmail, validatePasswordComplexity} from "../utils/validation";
 
 export class UserService implements CrudService<User> {
 
@@ -22,15 +26,16 @@ export class UserService implements CrudService<User> {
                 })
                 .catch(err => {
                     console.log(err.message);
+                    reject({ error: err });
                 })
         })
     }
 
-    findAll(): Promise<User[]> {
+    findAll(offset = 0): Promise<User[]> {
         return new Promise((resolve, reject) => {
-            const query = "SELECT * FROM users";
-
-            db.query(query)
+            const query = "SELECT * FROM users LIMIT ?,25";
+            const values = [offset];
+            db.query(query, values)
                 .then(rows => {
                     rows.map(e => {
                         delete e.password;
@@ -40,6 +45,7 @@ export class UserService implements CrudService<User> {
                 })
                 .catch(err => {
                     console.log(err.message);
+                    reject({ error: err });
                 })
         })
     }
@@ -48,6 +54,9 @@ export class UserService implements CrudService<User> {
         try {
             // copy user info
             const newUser: User = { ...user };
+            // validate data
+            if (!validateEmail(newUser.email)) throw new Error("Email format incorrect");
+            if (!validatePasswordComplexity(newUser.password)) throw new Error("Password format incorrect");
             // hash the password
             const salt = await bcrypt.genSalt(10);
             const hash = await bcrypt.hash(newUser.password, salt);
@@ -73,7 +82,7 @@ export class UserService implements CrudService<User> {
             return insertedUser;
         } catch (err) {
             console.log(err.message);
-            return { error: "Email or username already exists" }
+            throw { error: err.message }
         }
     }
 
@@ -107,7 +116,7 @@ export class UserService implements CrudService<User> {
             })
             .catch(err => {
                 console.log(err.message);
-                reject({error: "Error updating"})
+                reject({ error: err });
             })        
         });
     }
@@ -119,14 +128,13 @@ export class UserService implements CrudService<User> {
 
             db.query(sel, values)
                 .then(rows => {
-
                     if (rows && rows.affectedRows > 0) {
                     resolve({id: id}) 
                     } else reject({error: "Not found"})
                 })
                 .catch(err => {
                     console.log(err.message);
-                    reject({error: "Not found"})
+                    reject({ error: err });
                 })
         });
     }
@@ -152,5 +160,79 @@ export class UserService implements CrudService<User> {
             const token = await jwt.sign(payload, secretOrKey, { expiresIn: 3600 });
             return { Authorization: "Bearer " + token }
         } else throw ({ error: "Password mismatch" })
+    }
+
+    async resetPassword(id: string): Promise<Authentication> {
+        try {
+            const newPassword = generateRandomPassword();
+            // hash the password
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(newPassword, salt);
+
+            const sel = `
+                UPDATE users 
+                SET password=?  
+                WHERE id=?`;
+            const values = [hash, id];
+            const rows = await db.query(sel, values);
+            
+            if (rows && rows.affectedRows > 0) {
+                await this.sendEmailToUserPasswordReset(id, newPassword);
+                return { message: "Password reset succesfully" };
+            } else {
+                throw { error: "User not found" }
+            }
+        } catch (e) {
+            console.log(e.message);
+            throw { error: e };
+        }
+    }
+
+    async changePassword(user: User): Promise<Authentication> {
+        if (!user.email && !user.password && !user.password2){
+            throw { error: "Not all fields provided" }
+        }
+
+        if (!validatePasswordComplexity(user.password2)){
+            throw { error: "Password format incorrect" }
+        }
+        
+        const query = "SELECT id, email, password FROM users WHERE email=?";
+        const values = [user.email];
+
+        const rows = await db.query(query, values);
+        const { id, password } = rows[0];
+        const isMatch = await bcrypt.compare(user.password, password);
+        if (isMatch) {
+
+            // hash the password
+            const salt = await bcrypt.genSalt(10);
+            const hash = await bcrypt.hash(user.password2, salt);
+            const sel = `
+                UPDATE users 
+                SET password=?  
+                WHERE id=?`;
+            const values = [hash, id];
+            const rows = await db.query(sel, values)
+            
+            if (rows && rows.affectedRows > 0) {
+                return { message: "Password changed succesfully" };
+            } else throw { error: "User not found" };
+        } else {
+            throw { error: "Password mismatch" }
+        }
+    }
+
+    async sendEmailToUserPasswordReset(userId: string, password: string): Promise<void> {
+
+        const sel = "SELECT email FROM users WHERE id=?";
+        const values = [userId];
+        const rows = await db.query(sel, values);
+
+        if (rows && rows.affectedRows > 0) {
+            sendEmail(rows[0].email, resetPasswordBody(password), "Your password has been reset in Minitwitter!");
+        } else {
+            console.log("User email not found!!")
+        }
     }
 }

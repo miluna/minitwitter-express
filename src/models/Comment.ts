@@ -1,6 +1,7 @@
 export interface UserComment {
     id?: string;
-    userId?: number;
+    postId?: string;
+    userId?: string;
     content?: string;
     error?: string;
 }
