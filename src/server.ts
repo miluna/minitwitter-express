@@ -1,6 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 import helmet from 'helmet';
+import cors from 'cors';
 import { auth } from "./config/passport";
 import UserController from "./controllers/UserController";
 import CommentController from "./controllers/CommentController";
@@ -16,6 +17,7 @@ app.use(helmet({
     hidePoweredBy: true,
     noSniff: true,
 }));
+app.use(cors());
 
 // Passport middleware
 app.use(passport.initialize());
