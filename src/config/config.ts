@@ -1,6 +1,9 @@
 import { ConnectionConfig } from 'mysql';
 import { Transporter, createTransport } from "nodemailer";
 import mysql from 'promise-mysql';
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const dbConfig: ConnectionConfig = {
     host: process.env.DB_HOST,
